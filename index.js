@@ -6,8 +6,9 @@ let playerY = 100;
 var platform;
 let player;
 var cursor;
-const maxVelocityX = 200;
-let acceleration = 200;
+const maxVelocityX = 200;   // maximum player velocity in x direction
+let acceleration = 200;     // player acceleration
+const friction = .9;        // friction slows player down on ground
 // set the scene configurations
 
 // load assets 
@@ -32,7 +33,7 @@ gameScene.create = function(){
         platform = this.physics.add.staticGroup();
         platform.create(300, 350, 'platform').setScale(2).refreshBody();
 
-        platform.create(500, 200, 'platform');
+        platform.create(700, 200, 'platform');
         // platform.create(50, 250, 'platform');
         // platform.setPosition(300, 300);
         // ground.setScale(50,1);
@@ -47,24 +48,35 @@ gameScene.create = function(){
         // this.physics.arcade.enable(player);
         // player.setScale(0.5,0.5)
 }
+// player movement
 gameScene.update = function(){
-    if(cursor.right.isDown){
-        if(player.body.velocity.x < maxVelocityX){
-            player.body.setAccelerationX(acceleration);
+    // player movement for sprite on ground/platform
+    if(player.body.touching.down){
+        if(cursor.right.isDown){
+            if(player.body.velocity.x < maxVelocityX){
+                player.body.setAccelerationX(acceleration);
+            }
+        }else if(cursor.left.isDown){
+            if(-player.body.velocity.x < maxVelocityX){
+                player.body.setAccelerationX(-acceleration);
+            }
+        // slow the player down due to friction when on ground if no input given from user
+        }else if(!cursor.right.isDown && !cursor.left.isDown){
+            // player moving right
+            if(player.body.velocity.x > 0){            
+                player.body.setVelocityX(Math.floor(player.body.velocity.x * friction));
+            // player moving left
+            }else{
+                player.body.setVelocityX(Math.ceil(player.body.velocity.x * friction));
+            }
+            player.body.setAccelerationX(0);
         }
-    }else if(cursor.left.isDown){
-        if(-player.body.velocity.x < maxVelocityX){
-            player.body.setAccelerationX(-acceleration);
+        // jump when up key is hit and do not allow left/right input while in air
+        if(cursor.up.isDown){
+            player.setVelocityY(-250);
+            player.body.setAccelerationX(0);
         }
-    }else{
-        player.setVelocityX(0);
     }
-    if (cursor.up.isDown && player.body.touching.down)
-    {
-        player.setVelocityY(-250);
-    }
-   
-    
 }
 
 let config = {
