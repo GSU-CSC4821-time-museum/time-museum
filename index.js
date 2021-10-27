@@ -10,6 +10,7 @@
     let backGroundBar;
     let healthBar;
     let healthLabel;
+    let playerFacingRight = true;
 
     const maxVelocityX = 200;   // maximum player velocity in x direction
     const enemySpeed = 100;     // speed of enemy movement
@@ -41,7 +42,7 @@
 
     preload = function(){
         this.load.image('background', 'Assets/background.png');
-        this.load.spritesheet('player', 'Assets/walkingSpritesheet.png',{frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet('player', 'Assets/PlayerSpriteSheet.png',{frameWidth: 32, frameHeight: 32 });
         this.load.image('platform', 'Assets/platform.png');
         this.load.spritesheet('bullets', 'Assets/walkingSpritesheet.png',{frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('health', 'Assets/walkingSpritesheet.png',{frameWidth: 32, frameHeight: 32 });
@@ -72,6 +73,35 @@
             this.physics.add.collider(player, platform);
             this.physics.add.collider(player, enemy);
             player.setBounce(0.1);
+
+            //create player animations
+            // this.anims.create({
+            //     key: 'left',
+            //     frames: this.anims.generateFrameNumbers('player', { start: 4, end: 7 }),
+            //     frameRate: 10,
+            //     repeat: 1
+            // });
+
+            this.anims.create({
+                key: 'still',
+                frames: [ { key: 'player', frame: 1 } ],
+                frameRate: 20
+            });
+
+            this.anims.create({
+                key: 'right',
+                frames: this.anims.generateFrameNumbers('player', { start: 0, end: 3 }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+            //need to add jumping anim
+            // this.anims.create({
+            //     key: 'jump',
+            //     frames: [ { key: 'player', frame: 9 } ],
+            //     frameRate: 20
+            // });
+
         //creating enemy
             enemy = this.physics.add.sprite(enemyX, enemyY, 'player', 1);
             enemy.body.collideWorldBounds = true;
@@ -93,8 +123,8 @@
                 diamond.setScale(0.5);
             }
             //diamond Scores
-                diamond = this.add.sprite(510, 20, 'diamond');
-                scoreText = this.add.text(530, 15, 'score: 0', { fontSize: '20px', fill: '#000' });
+                diamond = this.add.sprite(480, 20, 'diamond');
+                scoreText = this.add.text(500, 15, 'Score: 0', { fontSize: '20px', fill: '#000' });
         // Health creation
            backGroundBar = this.add.image(100, 20, 'redHB');
            backGroundBar.fixedToCamera = true;
@@ -107,15 +137,33 @@
     }
     // player movement
     update = function(){
+        //if right arrow is pressed, move them right and animate also
         if(cursor.right.isDown){
             player.body.setVelocityX(maxVelocityX);
+            player.anims.play('right', true);
+            //if player was not facing right before, flip them to face right
+            if(!playerFacingRight){
+                player.toggleFlipX();
+                playerFacingRight = true;
+            }
+            //if left arrow is pressed, move them left and animate also
         }else if(cursor.left.isDown){    
             player.body.setVelocityX(-maxVelocityX);
+            player.anims.play('right', true);
+            //if player was not facing left before, flip them to face left
+            if(playerFacingRight){
+                player.toggleFlipX();
+                playerFacingRight = false;
+            }
+            //if no keys are pressed, stop their x motion and stop animating
         }else{
+            player.anims.play('still', true);
             player.body.setVelocityX(0);
         }
+        //if up arrow is pressed while character is standing on a surface, player jumps
         if(cursor.up.isDown && player.body.touching.down){
             player.setVelocityY(-250);
+            //player.anims.play('jump', true);
         }
         
         // enemy movement
@@ -134,7 +182,7 @@
     // collision between player and enemy
 }
 
-// when player collides with enemy player looses health 
+// when player collides with enemy player loses health 
 // The game stops when players health hits 0
 hitEnemy = function(player, enemy){
     playerHealth -= 10;
@@ -143,6 +191,7 @@ hitEnemy = function(player, enemy){
         healthBar.setScale(playerHealth/playerMaxHealth, 1);
     }
     if(playerHealth <= 0){
+        console.log("Call gameOver Scene here! Don't pause the physics");
         this.physics.pause();
         player.setTint(0xff0000);
         gameOver = true;
