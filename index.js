@@ -23,6 +23,7 @@
     let gameBarX = 100;
     var score = 0;
     var scoreText;
+    const knockback = 20;       // knockback is how many pixels the player moves away from enemy on collision
 
     class gameScene extends Phaser.Scene {
     constructor(playerX, playerY, enemyX, enemyY, enemy, platform, cursor, maxVelocityX, enemySpeed, enemyLeft, enemyRight) {
@@ -119,7 +120,7 @@
                 diamond.setBounce(0.1);  
                 diamond.body.collideWorldBounds = true;
                 this.physics.add.collider(diamond, platform); 
-                this.physics.add.collider(player, diamond, collectDiamond, null, this);
+                this.physics.add.overlap(player, diamond, collectDiamond, null, this);
                 diamond.setScale(0.5);
             }
             //diamond Scores
@@ -168,7 +169,6 @@
         
         // enemy movement
         // moves enemy back and forth
-        // need to fix where if player and enemy collide, enemy stops and does not resume movement sometimes
         if(enemy.x > enemyRight && enemy.body.velocity.x > 0){
             enemy.setVelocityX(-enemySpeed);
         }else if(enemy.x < enemyLeft && enemy.body.velocity.x < 0){
@@ -185,22 +185,41 @@
 // when player collides with enemy player loses health 
 // The game stops when players health hits 0
 hitEnemy = function(player, enemy){
-    playerHealth -= 10;
-    if(playerHealth >= 0){
-        healthLabel.setText("Health: " + playerHealth);
-        healthBar.setScale(playerHealth/playerMaxHealth, 1);
+
+    // if player jumps on enemy's head, kill enemy
+    if(player.y < enemy.y - 30){
+        enemy.disableBody(true, true);
+        //if player touches enemy from the side, player loses health
+    }else{
+        playerHealth -= 10;
+        if(playerHealth >= 0){
+            healthLabel.setText("Health: " + playerHealth);
+            //healthBar.setScale(playerHealth/playerMaxHealth, 1);
+        }
+        //move green health bar off screen for player health lost
+        healthBar.x -= gameBarX/5;
+        if(playerHealth <= 0){
+            console.log("Call gameOver Scene here! Don't pause the physics");
+            this.physics.pause();
+            player.setTint(0xff0000);
+            gameOver = true;
+            
+        }
+        // health.disableBody(true, true);
+        // knockback player on collision with enemy from side and have enemy move away from player
+        if(player.x < enemy.x){
+            player.x -= knockback;
+            enemy.setVelocityX(enemySpeed);
+        }
+        else{
+            player.x += knockback;
+            enemy.setVelocityX(-enemySpeed);
+        }
+
     }
-    if(playerHealth <= 0){
-        console.log("Call gameOver Scene here! Don't pause the physics");
-        this.physics.pause();
-        player.setTint(0xff0000);
-        gameOver = true;
-        
-    }
-    // health.disableBody(true, true);
     
 }
-// Score of player
+// update score of player when they pick up a diamond and have the diamond disappear
     collectDiamond = function(player, diamond){
         diamond.disableBody(true, true);
         score += 10;
