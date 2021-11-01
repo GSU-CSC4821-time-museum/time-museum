@@ -11,6 +11,7 @@
     let healthBar;
     let healthLabel;
     let playerFacingRight = true;
+    //let attackKey;
 
     const maxVelocityX = 200;   // maximum player velocity in x direction
     const enemySpeed = 100;     // speed of enemy movement
@@ -43,7 +44,7 @@
 
     preload = function(){
         this.load.image('background', 'Assets/background.png');
-        this.load.spritesheet('player', 'Assets/PlayerSpriteSheet.png',{frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet('player', 'Assets/PlayerSpriteSheetHorizontal.png',{frameWidth: 32, frameHeight: 32 });
         this.load.image('platform', 'Assets/platform.png');
         this.load.spritesheet('bullets', 'Assets/walkingSpritesheet.png',{frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('health', 'Assets/walkingSpritesheet.png',{frameWidth: 32, frameHeight: 32 });
@@ -68,6 +69,8 @@
             platform.create(600, 200, 'platform');
             platform.create(100, 250, 'platform');
             cursor = this.input.keyboard.createCursorKeys();
+            //this.attackKey = this.input.keyboard.addKey(Phaser.Keyboard.A);
+
         //creating player
             player = this.physics.add.sprite(playerX, playerY, 'player');
             player.body.collideWorldBounds = true;
@@ -96,12 +99,22 @@
                 repeat: -1
             });
 
-            //need to add jumping anim
-            // this.anims.create({
-            //     key: 'jump',
-            //     frames: [ { key: 'player', frame: 9 } ],
-            //     frameRate: 20
-            // });
+            this.anims.create({
+                key: 'jump',
+                frames: [ { key: 'player', frame: 5 } ],
+                frameRate: 20
+            });
+
+            this.anims.create({
+                key: 'punch',
+                frames: this.anims.generateFrameNumbers('player', { start: 7, end: 12 }),
+                frameRate: 15,
+                repeat: -1
+            });
+
+            // this.input.keyboard.on('keydown_A', function () {
+            //     player.anims.play('punch', true);
+            // }
 
         //creating enemy
             enemy = this.physics.add.sprite(enemyX, enemyY, 'player', 1);
@@ -156,15 +169,20 @@
                 player.toggleFlipX();
                 playerFacingRight = false;
             }
-            //if no keys are pressed, stop their x motion and stop animating
-        }else{
+            //player punch
+        }else if(cursor.down.isDown){
+            player.anims.play('punch', true);
+        }else{  //if no keys are pressed, stop their x motion and stop animating
             player.anims.play('still', true);
             player.body.setVelocityX(0);
         }
         //if up arrow is pressed while character is standing on a surface, player jumps
-        if(cursor.up.isDown && player.body.touching.down){
+        if(cursor.up.isDown && (player.body.onFloor() /*|| player.body.onWall()*/)){
             player.setVelocityY(-250);
             //player.anims.play('jump', true);
+        }
+        if(!player.body.onFloor()){
+            player.anims.play('jump', true);
         }
         
         // enemy movement
@@ -189,8 +207,12 @@ hitEnemy = function(player, enemy){
     // if player jumps on enemy's head, kill enemy
     if(player.y < enemy.y - 30){
         enemy.disableBody(true, true);
-        //if player touches enemy from the side, player loses health
-    }else{
+    }else if(player.anims.isPlaying && player.anims.currentAnim.key === 'punch' && 
+    ((playerFacingRight && player.x < enemy.x) || (!playerFacingRight && player.x >= enemy.x))){
+        // if player is facing enemy and punching, kill enemy. player does not move
+        enemy.disableBody(true, true);
+        player.body.setVelocityX(0);
+    }else{  //if player touches enemy from the side, player loses health
         playerHealth -= 10;
         if(playerHealth >= 0){
             healthLabel.setText("Health: " + playerHealth);
