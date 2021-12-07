@@ -1,7 +1,7 @@
 import { Game } from "phaser";
-import GameScene from "./GameScene";
+import GameScene from "./GameScene.js";
 import introScreen from "./introScreen.js";
-import GameScene2 from "./GameScene2";
+import GameScene2 from "./GameScene2.js";
 
 var config = {
   type: Phaser.AUTO,
@@ -15,8 +15,8 @@ var config = {
       debug: false,
     },
   },
+  scene: [introScreen, GameScene, GameScene2],
   // scene: [introScreen, GameScene],
-  scene: [GameScene2],
 };
 
 var game = new Phaser.Game(config);

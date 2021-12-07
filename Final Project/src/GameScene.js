@@ -1,10 +1,13 @@
 import { Scene } from "phaser";
 
+
 let player;
 let playerX = 70;
 let playerY = 200;
 let playerHealth = 100;
 let playerMaxHealth = 100;
+let items;
+let itemsArr = new Array(2);
 
 const maxVelocityX = 200; // maximum player velocity in x direction
 
@@ -16,14 +19,18 @@ const enemyLeft = 450; // left bound for enemy
 const enemyRight = 600;
 
 let platform;
+let movingPlatform;
 
 let health;
 let backGroundBar;
 let healthBar;
 let healthLabel;
 let gameBarX = 100;
+let ExitDoor;
 
 let gameOverText;
+
+let gameOverState = false;
 
 let cursor;
 let attackKey;
@@ -35,6 +42,8 @@ let diamond;
 
 var score = 0;
 var scoreText;
+
+let tempItem;
 
 const knockback = 20; // knockback is how many pixels the player moves away from enemy on collision
 let healthLossAmount = 10;
@@ -64,6 +73,16 @@ class GameScene extends Scene {
     this.load.image("greenHB", "Assets/greenHB.png");
     this.load.image("redHB", "Assets/redHB.png");
 
+    this.load.image("CavemanRobes", "assets/items/CavemanRobes.png");
+    this.load.image("CureAllPotion", "assets/items/CureAllPotion.png");
+    this.load.image("DinosaurBone", "assets/items/DinosaurBone.png");
+    this.load.image("NES", "assets/items/NES.png");
+    this.load.image("PoisonedBerry", "assets/items/PoisonedBerry.png");
+    this.load.image("RubixCube", "assets/items/RubixCube.png");
+    this.load.image("SignedBCPoster", "assets/items/SignedBCPoster.png");
+    this.load.image("TalkingToothbrush", "assets/items/TalkingToothbrush.png");
+    this.load.image("ToyRobot", "assets/items/ToyRobot.png");
+
 
   }
   create() {
@@ -72,8 +91,12 @@ class GameScene extends Scene {
     this.createPlatforms();
     this.createPlayer();
     this.createEnemy();
-    this.diamondCreation();
+    this.diamondCreation("NES");
     this.healthCreation();
+    this.createMovingPlatforms();
+    this.ExitCreation();
+    this.UpdateItems();
+
     this.gameOverText = this.add.text(400, 300, 'Game Over', {
       fontSize: '64px',
       fill: '#000'
@@ -84,16 +107,29 @@ class GameScene extends Scene {
   update() {
     this.playerMovement();
     this.enemyMovement();
+    this.platformMovement();
+    if(this.player.y > 650){
+      this.gameOver();
+    }
+  }
+  createMovingPlatforms(){
+    this.movingPlatform = this.add.group();
+    this.movingPlatform.create(60, 100, "platform");
 
   }
-
   createPlatforms() {
     this.platform = this.physics.add.staticGroup();
-    this.platform.create(300, 360, "platform").setScale(1).refreshBody();
-    this.platform.create(50, 120, "platform");
-    this.platform.create(600, 200, "platform");
-    this.platform.create(100, 250, "platform");
+    //bottom platform
+    // this.platform.create(200, 582, "platform").setScale(1).refreshBody();
+    // this.platform.create(600, 582, "platform").setScale(1).refreshBody();
+
+    this.platform.create(60, 200, "platform");
+    this.platform.create(600, 300, "platform");
+    this.platform.create(100, 400, "platform");
+    this.platform.create(600, 500, "platform");
     this.cursor = this.input.keyboard.createCursorKeys();
+
+
   }
   createPlayer() {
     this.player = this.physics.add.sprite(playerX, playerY, "player");
@@ -149,11 +185,11 @@ class GameScene extends Scene {
     this.enemy.setBounce(0.1);
     this.enemy.setVelocityX(enemySpeed);
   }
-  diamondCreation() {
+  diamondCreation(item_name) {
     this.diamond = this.add.group();
     this.diamond.enableBody = true;
     for (let i = 0; i < 12; i++) {
-      this.diamond = this.physics.add.sprite(i * 70, 0, "diamond");
+      this.diamond = this.physics.add.sprite(i * 70, 0, item_name);
       this.diamond.setBounce(0.1);
       this.diamond.body.collideWorldBounds = true;
       this.physics.add.collider(this.diamond, this.platform);
@@ -166,6 +202,10 @@ class GameScene extends Scene {
       fill: "#000",
     });
   }
+  // multiItem(x, y, item){
+  //   this.tempItem = this.physics.add.sprite(i * 70, 0, item)
+  // }
+
   healthCreation() {
     this.backGroundBar = this.add.image(100, 20, "redHB");
     this.backGroundBar.fixedToCamera = true;
@@ -185,18 +225,18 @@ class GameScene extends Scene {
       this.player.body.setVelocityX(maxVelocityX);
       this.player.anims.play("right", true);
       //if player was not facing right before, flip them to face right
-      if (!this.playerFacingRight) {
+      if (!playerFacingRight) {
         this.player.toggleFlipX();
-        this.playerFacingRight = true;
+        playerFacingRight = true;
       }
       //if left arrow is pressed, move them left and animate also
     } else if (this.cursor.left.isDown) {
       this.player.body.setVelocityX(-maxVelocityX);
       this.player.anims.play("right", true);
       //if player was not facing left before, flip them to face left
-      if (this.playerFacingRight) {
+      if (playerFacingRight) {
         this.player.toggleFlipX();
-        this.playerFacingRight = false;
+        playerFacingRight = false;
       }
       //player punch
     } else if (this.cursor.down.isDown) {
@@ -214,6 +254,8 @@ class GameScene extends Scene {
     if (!this.player.body.onFloor()) {
       this.player.anims.play("jump", true);
     }
+
+
   }
   enemyMovement() {
     if (this.enemy.x > enemyRight && this.enemy.body.velocity.x > 0) {
@@ -224,12 +266,20 @@ class GameScene extends Scene {
       this.enemy.setVelocityX(enemySpeed);
     }
   }
+  platformMovement(){
+    console.log(this.movingPlatform)
+  }
   collectDiamond(player, diamond) {
     diamond.disableBody(true, true);
     score += 10;
     this.scoreText.setText("Score: " + score);
   };
 
+  ExitCreation(){
+    this.ExitDoor = this.physics.add.sprite(760, 450, "player");
+    this.physics.add.collider(this.ExitDoor, this.platform);
+    this.physics.add.overlap(this.ExitDoor, this.player, this.Exit, null, this);
+  }
   hitEnemy(player, enemy) {
     if (this.player.y < this.enemy.y - 30) {
       this.enemy.disableBody(true, true);
@@ -250,10 +300,8 @@ class GameScene extends Scene {
       // console.log(this.healthBar.x);
       if (playerHealth <= 0) {
         console.log("Call gameOver Scene here! Don't pause the physics");
-        this.physics.pause();
         this.player.setTint(0xff0000);
-        this.gameOver = true;
-        this.gameOverText.visible = true;
+        this.gameOver();
       }
       // health.disableBody(true, true);
       // knockback player on collision with enemy from side and have enemy move away from player
@@ -265,6 +313,22 @@ class GameScene extends Scene {
         this.enemy.setVelocityX(-enemySpeed);
       }
     }
+  }
+  gameOver(){
+    this.physics.pause();
+    this.gameOverState = true;
+    this.gameOverText.visible = true;
+    this.input.on('pointerdown', () => this.scene.start('intro'))
+
+  }
+  Exit(){
+    console.log("collision");
+    this.scene.start('level2')
+  }
+  UpdateItems(){
+    this.items = this.add.sprite(280, 20, "diamond");
+    itemsArr[0] = this.items;
+    itemsArr[0].visible = true;
   }
 }
 

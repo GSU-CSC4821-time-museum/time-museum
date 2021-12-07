@@ -1,5 +1,6 @@
 import { Scene } from 'phaser'
 
+
 let player;
 let playerX = 70;
 let playerY = 200;
@@ -7,7 +8,7 @@ let playerHealth = 100;
 let playerMaxHealth = 100;
 let playerJumpLimit = 400;
 
-const maxVelocityX = 150; // maximum player velocity in x direction
+const maxVelocityX = 200; // maximum player velocity in x direction
 
 let enemy;
 let enemyX = 500;
@@ -49,9 +50,9 @@ const frameAnimation = (scene, y, count, layer, scrollFactor, scale) => {
         .setOrigin()
         .setScrollFactor(scrollFactor)
         .setScale(scale)
-
       x += m.width
     }
+
  }
 
 class GameScene2 extends Scene {
@@ -70,7 +71,6 @@ class GameScene2 extends Scene {
 
     this.load.spritesheet("player", "Assets/PlayerSpriteSheetHorizontal.png", {
       frameWidth: 32,
-      frameHeight: 32,
     });
   }
   create(){
@@ -87,7 +87,7 @@ class GameScene2 extends Scene {
     const width = this.scale.width
     const height = this.scale.height
     const offseter = 350;
-    const frameCount = 1000;
+    const frameCount = 2;
 
     //layer 1
     this.add.image(width * 0.5, height * 0.5, 'layer1')
@@ -175,29 +175,30 @@ class GameScene2 extends Scene {
   }
   BackgroundAndPlayerMovementAnimation(){
     const cam = this.cameras.main
-    const speed = 2;
+    const speed = 2.5;
 
     //left key
     if(this.cursors.left.isDown){
       cam.scrollX -= speed;
+      // let playDirection = right
 
       this.player.body.setVelocityX(-maxVelocityX);
       this.player.anims.play("right", true);
       //if player was not facing left before, flip them to face left
-      if (this.playerFacingRight) {
+      if (playerFacingRight) {
         this.player.toggleFlipX();
-        this.playerFacingRight = false;
+        playerFacingRight = false;
       }
     //left key
     }else if(this.cursors.right.isDown){
         cam.scrollX += speed;
-
+        console.log(this.player.x);
         this.player.body.setVelocityX(maxVelocityX);
         this.player.anims.play("right", true);
         //if player was not facing right before, flip them to face right
-        if (!this.playerFacingRight) {
+        if (!playerFacingRight) {
           this.player.toggleFlipX();
-          this.playerFacingRight = true;
+          playerFacingRight = true;
         }
       }else if (this.cursors.down.isDown) {
         this.player.anims.play("punch", true);
