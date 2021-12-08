@@ -2,6 +2,7 @@ import { Game } from "phaser";
 import GameScene from "./GameScene.js";
 import introScreen from "./introScreen.js";
 import GameScene2 from "./GameScene2.js";
+import EndScreen from "./EndScreen.js"
 
 var config = {
   type: Phaser.AUTO,
@@ -12,11 +13,11 @@ var config = {
     default: "arcade",
     arcade: {
       gravity: { y: 300 },
-      debug: false,
+      debug: true,
     },
   },
-  scene: [introScreen, GameScene, GameScene2],
-  // scene: [introScreen, GameScene],
+  // scene: [introScreen, GameScene, GameScene2, EndScreen],
+  scene: [GameScene2, EndScreen],
 };
 
 var game = new Phaser.Game(config);
