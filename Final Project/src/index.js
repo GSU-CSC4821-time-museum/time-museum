@@ -3,6 +3,7 @@ import GameScene from "./GameScene.js";
 import introScreen from "./introScreen.js";
 import GameScene2 from "./GameScene2.js";
 import EndScreen from "./EndScreen.js"
+import GameScene3 from "./GameScene3.js";
 
 var config = {
   type: Phaser.AUTO,
@@ -16,8 +17,8 @@ var config = {
       debug: true,
     },
   },
-  // scene: [introScreen, GameScene, GameScene2, EndScreen],
-  scene: [GameScene2, EndScreen],
+  scene: [introScreen, GameScene, GameScene2, GameScene3, EndScreen],
+  // scene: [GameScene3, EndScreen],
 };
 
 var game = new Phaser.Game(config);
