@@ -92,9 +92,9 @@ class GameScene extends Scene {
     this.createPlatforms();
     this.createPlayer();
     this.createEnemy();
-    this.diamondCreation(500, 200, "CavemanRobes");
-    this.diamondCreation(100, 100, "DinosaurBone");
-    this.diamondCreation(400, 400, "PoisonedBerry");
+    this.CavemanRobesCreation(500, 200);
+    this.DinosaurBoneCreation(100, 100);
+    this.PoisonedBerryCreation(450, 400);
     this.healthCreation();
     // this.createMovingPlatforms();
     this.ExitCreation();
@@ -109,6 +109,13 @@ class GameScene extends Scene {
     this.gameOverText.visible = false;
 
     this.cameras.main.startFollow(this.player);
+
+    this.diamond = this.add.sprite(480, 20, "diamond").setScrollFactor(0);
+    this.scoreText = this.add.text(500, 15, "Score: " + score, {
+      fontSize: "20px",
+      fill: "#000",
+    });
+    this.scoreText.setScrollFactor(0);
 
   }
   update() {
@@ -211,6 +218,37 @@ class GameScene extends Scene {
     });
     this.scoreText.setScrollFactor(0);
   }
+  CavemanRobesCreation(x, y){
+    this.cavemanRobes = this.add.group();
+    this.cavemanRobes.enableBody = true;
+    this.cavemanRobes = this.physics.add.sprite(x, y, 'CavemanRobes');
+    this.cavemanRobes.setBounce(0.1);
+    this.cavemanRobes.body.collideWorldBounds = true;
+    this.physics.add.collider(this.cavemanRobes, this.platform);
+    this.physics.add.overlap(this.player, this.cavemanRobes, this.collectCavemanRobes, null, this);
+    this.cavemanRobes.setScale(1);
+  }
+  DinosaurBoneCreation(x, y){
+    this.dinosaurBone = this.add.group();
+    this.dinosaurBone.enableBody = true;
+    this.dinosaurBone = this.physics.add.sprite(x, y, 'DinosaurBone');
+    this.dinosaurBone.setBounce(0.1);
+    this.dinosaurBone.body.collideWorldBounds = true;
+    this.physics.add.collider(this.dinosaurBone, this.platform);
+    this.physics.add.overlap(this.player, this.dinosaurBone, this.collectDinosaurBones, null, this);
+    this.dinosaurBone.setScale(1);
+  }
+  PoisonedBerryCreation(x, y){
+    this.poisonedBerry = this.add.group();
+    this.poisonedBerry.enableBody = true;
+    this.poisonedBerry = this.physics.add.sprite(x, y, 'PoisonedBerry');
+    this.poisonedBerry.setBounce(0.1);
+    this.poisonedBerry.body.collideWorldBounds = true;
+    this.physics.add.collider(this.poisonedBerry, this.platform);
+    this.physics.add.overlap(this.player, this.poisonedBerry, this.collectPoisonedBerry, null, this);
+    this.poisonedBerry.setScale(1);
+  }
+
   // multiItem(x, y, item){
   //   this.tempItem = this.physics.add.sprite(i * 70, 0, item)
   // }
@@ -286,7 +324,25 @@ class GameScene extends Scene {
     diamond.disableBody(true, true);
     score += 10;
     this.scoreText.setText("Score: " + score);
-  };
+  }
+  collectCavemanRobes(player, cavemanRobes){
+    cavemanRobes.disableBody(true, true);
+    score += 10;
+    this.scoreText.setText("Score: " + score);
+    this.UpdateItems("CavemanRobes");
+  }
+  collectDinosaurBones(player, dinosaurBone){
+    dinosaurBone.disableBody(true, true);
+    score += 10;
+    this.scoreText.setText("Score: " + score);
+    this.UpdateItems("DinosaurBone");
+  }
+  collectPoisonedBerry(player, poisonedBerry){
+    poisonedBerry.disableBody(true, true);
+    score += 10;
+    this.scoreText.setText("Score: " + score);
+    this.UpdateItems("PoisonedBerry");
+  }
 
   ExitCreation(){
     this.ExitDoor = this.physics.add.sprite(760, 450, "player");
@@ -339,10 +395,11 @@ class GameScene extends Scene {
     console.log("collision");
     this.scene.start('level2')
   }
-  UpdateItems(){
-    this.items = this.add.sprite(280, 20, "NES").setScrollFactor(0);
-    itemsArr[0] = this.items;
-    itemsArr[0].visible = true;
+  UpdateItems(item_name){
+    this.items = this.add.sprite(280 + (32*numItems), 20, item_name).setScrollFactor(0);
+    itemsArr[numItems] = this.items;
+    itemsArr[numItems].visible = true;
+    numItems++;
   }
 }
 
