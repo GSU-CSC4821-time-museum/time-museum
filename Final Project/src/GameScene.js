@@ -42,6 +42,7 @@ let diamond;
 
 var score = 0;
 var scoreText;
+let numItems = 0;
 
 let tempItem;
 
@@ -61,14 +62,14 @@ class GameScene extends Scene {
       frameHeight: 32,
     });
     this.load.image("platform", "Assets/platform.png");
-    this.load.spritesheet("bullets", "Assets/walkingSpritesheet.png", {
-      frameWidth: 32,
-      frameHeight: 32,
-    });
-    this.load.spritesheet("health", "Assets/walkingSpritesheet.png", {
-      frameWidth: 32,
-      frameHeight: 32,
-    });
+    // this.load.spritesheet("bullets", "Assets/walkingSpritesheet.png", {
+    //   frameWidth: 32,
+    //   frameHeight: 32,
+    // });
+    // this.load.spritesheet("health", "Assets/walkingSpritesheet.png", {
+    //   frameWidth: 32,
+    //   frameHeight: 32,
+    // });
     this.load.image("diamond", "Assets/diamond.png");
     this.load.image("greenHB", "Assets/greenHB.png");
     this.load.image("redHB", "Assets/redHB.png");
@@ -86,16 +87,19 @@ class GameScene extends Scene {
 
   }
   create() {
-    const background = this.add.image(0, 0, 'background');
+    const background = this.add.image(0, 0, 'background').setScale(1).setScrollFactor(0);
     background.setOrigin(0, 0);
     this.createPlatforms();
     this.createPlayer();
     this.createEnemy();
-    this.diamondCreation("NES");
+    this.diamondCreation(500, 200, "CavemanRobes");
+    this.diamondCreation(100, 100, "DinosaurBone");
+    this.diamondCreation(400, 400, "PoisonedBerry");
     this.healthCreation();
-    this.createMovingPlatforms();
+    // this.createMovingPlatforms();
     this.ExitCreation();
     this.UpdateItems();
+    attackKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
 
     this.gameOverText = this.add.text(400, 300, 'Game Over', {
       fontSize: '64px',
@@ -103,30 +107,35 @@ class GameScene extends Scene {
     })
     this.gameOverText.setOrigin(0.5);
     this.gameOverText.visible = false;
+
+    this.cameras.main.startFollow(this.player);
+
   }
   update() {
     this.playerMovement();
     this.enemyMovement();
-    this.platformMovement();
+    // this.platformMovement();
     if(this.player.y > 650){
       this.gameOver();
     }
   }
-  createMovingPlatforms(){
-    this.movingPlatform = this.add.group();
-    this.movingPlatform.create(60, 100, "platform");
+  // createMovingPlatforms(){
+  //   this.movingPlatform = this.add.group();
+  //   this.movingPlatform.create(60, 100, "platform");
 
-  }
+  // }
   createPlatforms() {
     this.platform = this.physics.add.staticGroup();
     //bottom platform
     // this.platform.create(200, 582, "platform").setScale(1).refreshBody();
     // this.platform.create(600, 582, "platform").setScale(1).refreshBody();
 
-    this.platform.create(60, 200, "platform");
+    let plat1 = this.platform.create(60, 200, "platform").setAlpha(.5);
     this.platform.create(600, 300, "platform");
     this.platform.create(100, 400, "platform");
     this.platform.create(600, 500, "platform");
+    // this.platform.visible = false;
+    // this.plat1.setAlpha(.5);
     this.cursor = this.input.keyboard.createCursorKeys();
 
 
@@ -185,22 +194,22 @@ class GameScene extends Scene {
     this.enemy.setBounce(0.1);
     this.enemy.setVelocityX(enemySpeed);
   }
-  diamondCreation(item_name) {
+  diamondCreation(x, y, item_name) {
     this.diamond = this.add.group();
     this.diamond.enableBody = true;
-    for (let i = 0; i < 12; i++) {
-      this.diamond = this.physics.add.sprite(i * 70, 0, item_name);
-      this.diamond.setBounce(0.1);
-      this.diamond.body.collideWorldBounds = true;
-      this.physics.add.collider(this.diamond, this.platform);
-      this.physics.add.overlap(this.player, this.diamond, this.collectDiamond, null, this);
-      this.diamond.setScale(0.5);
-    }
-    this.diamond = this.add.sprite(480, 20, "diamond");
-    this.scoreText = this.add.text(500, 15, "Score: 0", {
+    this.diamond = this.physics.add.sprite(x, y, item_name);
+    this.diamond.setBounce(0.1);
+    this.diamond.body.collideWorldBounds = true;
+    this.physics.add.collider(this.diamond, this.platform);
+    this.physics.add.overlap(this.player, this.diamond, this.collectDiamond, null, this);
+    this.diamond.setScale(1);
+
+    this.diamond = this.add.sprite(480, 20, "diamond").setScrollFactor(0);
+    this.scoreText = this.add.text(500, 15, "Score: ", {
       fontSize: "20px",
       fill: "#000",
     });
+    this.scoreText.setScrollFactor(0);
   }
   // multiItem(x, y, item){
   //   this.tempItem = this.physics.add.sprite(i * 70, 0, item)
@@ -208,16 +217,19 @@ class GameScene extends Scene {
 
   healthCreation() {
     this.backGroundBar = this.add.image(100, 20, "redHB");
-    this.backGroundBar.fixedToCamera = true;
+    // this.backGroundBar.fixedToCamera = true;
+    this.backGroundBar.setScrollFactor(0);
 
     this.healthBar = this.add.image(gameBarX, 20, "greenHB");
-    this.healthBar.fixedToCamera = true;
+    // this.healthBar.fixedToCamera = true;
+    this.healthBar.setScrollFactor(0);
 
     this.healthLabel = this.add.text(5, 30, "Health " + playerHealth, {
       fontsize: "20px",
       fill: "#ffffff",
     });
-    this.healthLabel.fixedToCamera = true;
+    // this.healthLabel.fixedToCamera = true;
+    this.healthLabel.setScrollFactor(0);
   }
 
   playerMovement() {
@@ -227,8 +239,8 @@ class GameScene extends Scene {
       //if player was not facing right before, flip them to face right
       if (!playerFacingRight) {
         this.player.toggleFlipX();
-        playerFacingRight = true;
       }
+      playerFacingRight = true;
       //if left arrow is pressed, move them left and animate also
     } else if (this.cursor.left.isDown) {
       this.player.body.setVelocityX(-maxVelocityX);
@@ -236,12 +248,13 @@ class GameScene extends Scene {
       //if player was not facing left before, flip them to face left
       if (playerFacingRight) {
         this.player.toggleFlipX();
-        playerFacingRight = false;
       }
+      playerFacingRight = false;
       //player punch
-    } else if (this.cursor.down.isDown) {
+    } else if(attackKey.isDown) {
+      console.log('A key pressed - punch');
       this.player.anims.play("punch", true);
-    } else {
+   } else {
       //if no keys are pressed, stop their x motion and stop animating
       this.player.anims.play("still", true);
       this.player.body.setVelocityX(0);
@@ -266,9 +279,9 @@ class GameScene extends Scene {
       this.enemy.setVelocityX(enemySpeed);
     }
   }
-  platformMovement(){
-    console.log(this.movingPlatform)
-  }
+  // platformMovement(){
+  //   console.log(this.movingPlatform)
+  // }
   collectDiamond(player, diamond) {
     diamond.disableBody(true, true);
     score += 10;
@@ -317,6 +330,7 @@ class GameScene extends Scene {
   gameOver(){
     this.physics.pause();
     this.gameOverState = true;
+    this.gameOverText.setScrollFactor(0);
     this.gameOverText.visible = true;
     this.input.on('pointerdown', () => this.scene.start('intro'))
 
@@ -326,7 +340,7 @@ class GameScene extends Scene {
     this.scene.start('level2')
   }
   UpdateItems(){
-    this.items = this.add.sprite(280, 20, "diamond");
+    this.items = this.add.sprite(280, 20, "NES").setScrollFactor(0);
     itemsArr[0] = this.items;
     itemsArr[0].visible = true;
   }
