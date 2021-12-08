@@ -101,9 +101,7 @@ class GameScene extends Scene {
     this.DinosaurBoneCreation(100, 100);
     this.PoisonedBerryCreation(450, 400);
     this.healthCreation();
-    // this.createMovingPlatforms();
     this.ExitCreation();
-    this.UpdateItems();
     attackKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
 
     this.gameOverText = this.add.text(400, 300, 'Game Over.\nClick to\ntry again.', {
@@ -407,8 +405,8 @@ class GameScene extends Scene {
     this.items = this.add.sprite(280 + (32*numItems), 20, item_name).setScrollFactor(0);
     itemsArr[numItems] = this.items;
     itemsArr[numItems].visible = true;
-    console.log('numItems: ' + numItems);
     numItems++;
+    console.log('numItems: ' + numItems);
   }
 }
 
